@@ -7,6 +7,11 @@ from langchain_core.output_parsers import StrOutputParser
 from urllib.parse import urlparse, parse_qs
 from youtube_transcript_api._errors import NoTranscriptFound
 
+from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_chroma import Chroma
+
 load_dotenv()
 
 yt_api = YouTubeTranscriptApi()
@@ -34,17 +39,34 @@ except NoTranscriptFound:
 
 full_text = "".join(snippet.text for snippet in transcript)
 
+embeddings_model = HuggingFaceEmbeddings(model_name='BAAI/bge-small-en-v1.5')
+chunks = SemanticChunker(embeddings_model)
+
+docs = [Document(page_content=full_text)]
+text = chunks.split_documents(docs)
+
+chroma = Chroma(
+            collection_name = 'transcripts',
+            embedding_function = embeddings_model,
+            persist_directory= "./chroma_db")
+
+chroma.reset_collection()
+
+chroma.add_documents(text)
+
+retriever = chroma.as_retriever(search_kwargs={"k": 5})
+
 parser = StrOutputParser()
 
 prompt = PromptTemplate(
     template = """
     Use the given context to answer questions.
     Context:
-    {full_text}
+    {doc_content}
     Question:
     {query}
     """,
-    input_variables = ["full_text", "query"]
+    input_variables = ["doc_content", "query"]
 )
 
 llm = ChatGroq(api_key=os.getenv('GROQ_API_KEY'),
@@ -53,9 +75,11 @@ model='llama-3.3-70b-versatile')
 chain = prompt | llm | parser
 while True:
     query = input('User: ')
+    results = retriever.invoke(query)
+    doc_content = "\n".join(doc.page_content for doc in results)
     result = chain.invoke({
         'query' : query,
-        'full_text':full_text
+        'doc_content':doc_content
     })
 
     print('AI: ', result)
