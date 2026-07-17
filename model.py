@@ -42,8 +42,17 @@ full_text = " ".join(snippet.text for snippet in transcript)
 embeddings_model = HuggingFaceEmbeddings(model_name='BAAI/bge-small-en-v1.5')
 chunks = SemanticChunker(embeddings_model)
 
-docs = [Document(page_content=full_text)]
-text = chunks.split_documents(docs)
+docs = []
+
+for snippet in transcript:
+
+    docs.append(Document(page_content=snippet.text,
+    metadata={
+        "start":snippet.start,
+        "duration":snippet.duration
+    }))
+text = chunks.split_documents(docs) #<--------------------------------------
+print(f"Total chunks: {len(text)}")
 
 chroma = Chroma(
             collection_name = 'transcripts',
@@ -95,11 +104,22 @@ while True:
     if 'summary' in query:
         result = summary_chain.invoke({'query':query, 'full_text':full_text})
 
+    context = ""
+
     results = retriever.invoke(query)
-    doc_content = "\n".join(doc.page_content for doc in results)
+
+    for doc in results:
+        context+=f""""
+        Timestamp: {doc.metadata['start']}
+
+        content: 
+        {doc.page_content}
+        """
+
+    # doc_content = "\n".join(doc.page_content for doc in results)
     result = chain.invoke({
         'query' : query,
-        'doc_content':doc_content
+        'doc_content':context
     })
 
     print('AI: ', result)
