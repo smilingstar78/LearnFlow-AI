@@ -37,7 +37,7 @@ except NoTranscriptFound:
     transcript = yt_api.fetch(extract_video_id(url), languages=["hi"])
     print("Using Hindi transcript")
 
-full_text = "".join(snippet.text for snippet in transcript)
+full_text = " ".join(snippet.text for snippet in transcript)
 
 embeddings_model = HuggingFaceEmbeddings(model_name='BAAI/bge-small-en-v1.5')
 chunks = SemanticChunker(embeddings_model)
@@ -69,12 +69,32 @@ prompt = PromptTemplate(
     input_variables = ["doc_content", "query"]
 )
 
+summary_prompt = PromptTemplate(
+    template = """
+    Explain summary of the given context in easy words.
+
+    Question:
+    {query}
+    Context:
+    {full_text}
+
+    """,
+    input_variables = ['full_text']
+)
+
+
 llm = ChatGroq(api_key=os.getenv('GROQ_API_KEY'),
 model='llama-3.3-70b-versatile')
 
 chain = prompt | llm | parser
+
+summary_chain = summary_prompt | llm | parser
+
 while True:
     query = input('User: ')
+    if 'summary' in query:
+        result = summary_chain.invoke({'query':query, 'full_text':full_text})
+
     results = retriever.invoke(query)
     doc_content = "\n".join(doc.page_content for doc in results)
     result = chain.invoke({
