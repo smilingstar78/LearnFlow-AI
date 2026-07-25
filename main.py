@@ -13,6 +13,14 @@ from features.chat import create_chat_chain
 
 from features.summary import create_summary_chain
 
+from features.overview import create_overview_chain
+
+from features.timestamp import (
+    extract_timestamp,
+    get_timestamp_context,
+    create_timestamp_chain
+)
+
 
 load_dotenv()
 
@@ -75,6 +83,10 @@ chat_chain = create_chat_chain(llm)
 
 summary_chain = create_summary_chain(llm)
 
+overview_chain = create_overview_chain(llm)
+
+timestamp_chain = create_timestamp_chain(llm)
+
 
 # -----------------------------------
 # 8. Chat Loop
@@ -84,18 +96,73 @@ while True:
 
     query = input("\nUser: ")
 
+    query_lower = query.lower()
+
+
+    # -------------------------------
+    # Video Overview Feature
+    # -------------------------------
+
+    if (
+        "what is this video about" in query_lower
+        or "what is the video about" in query_lower
+        or "tell me about this video" in query_lower
+    ):
+
+        result = overview_chain.invoke({
+
+            "full_text": full_text
+
+        })
+
+        print("\nAI:", result)
+
+        continue
+
 
     # -------------------------------
     # Summary Feature
     # -------------------------------
 
-    if "summary" in query.lower():
+    if "summary" in query_lower:
 
         result = summary_chain.invoke({
 
             "full_text": full_text
 
         })
+
+        print("\nAI:", result)
+
+        continue
+
+
+    # -------------------------------
+    # Timestamp Feature
+    # -------------------------------
+
+    timestamp = extract_timestamp(query)
+
+
+    if timestamp is not None:
+
+        timestamp_context = get_timestamp_context(
+
+            transcript,
+
+            timestamp
+
+        )
+
+
+        result = timestamp_chain.invoke({
+
+            "context": timestamp_context,
+
+            "query": query
+
+        })
+
 
         print("\nAI:", result)
 
@@ -110,6 +177,7 @@ while True:
 
 
     context = ""
+
 
     for doc in results:
 
