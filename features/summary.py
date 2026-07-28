@@ -1,26 +1,29 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-
 def create_summary_chain(llm):
 
-    summary_prompt = PromptTemplate(
+    prompt = PromptTemplate(
 
         template="""
-        Give a summary of the following video transcript
-        in simple and easy-to-understand words.
+Summarize the following transcript.
 
-        Transcript:
-        {full_text}
-        """,
+Transcript:
+{full_text}
 
-        input_variables=[
-            "full_text"
-        ]
+User Request:
+{query}
+
+Instructions:
+- If the user asks for a specific language, write the summary in that language.
+- Otherwise, summarize in the transcript's language.
+- Keep the summary easy to understand.
+""",
+
+        input_variables=["full_text", "query"]
+
     )
 
     parser = StrOutputParser()
 
-    summary_chain = summary_prompt | llm | parser
-
-    return summary_chain
+    return prompt | llm | parser

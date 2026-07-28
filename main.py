@@ -111,9 +111,11 @@ while True:
 
         result = overview_chain.invoke({
 
-            "full_text": full_text
+    "full_text": full_text,
 
-        })
+    "query": query
+
+})
 
         print("\nAI:", result)
 
@@ -128,9 +130,11 @@ while True:
 
         result = summary_chain.invoke({
 
-            "full_text": full_text
+    "full_text": full_text,
 
-        })
+    "query": query
+
+})
 
         print("\nAI:", result)
 

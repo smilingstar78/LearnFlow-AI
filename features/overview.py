@@ -1,26 +1,29 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-
 def create_overview_chain(llm):
-    overview_prompt = PromptTemplate(
+
+    prompt = PromptTemplate(
+
         template="""
-        Analyze the following YouTube transcript.
+Read the transcript and explain what this video is about.
 
-        Identify:
-        1. What is the main topic of the video?
-        2. What are the main concepts discussed?
-        3. What is the purpose of the video?
-        4. What should someone learn after watching it?
+Transcript:
+{full_text}
 
-        Transcript:
-        {full_text}
-        """,
+User Request:
+{query}
 
-        input_variables=["full_text"]
+Instructions:
+- If the user requests another language, answer in that language.
+- Otherwise, answer in the transcript's language.
+- Explain the main topic and key ideas.
+""",
+
+        input_variables=["full_text", "query"]
+
     )
 
     parser = StrOutputParser()
-    overview_chain = overview_prompt | llm | parser
 
-    return overview_chain
+    return prompt | llm | parser

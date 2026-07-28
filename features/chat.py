@@ -1,44 +1,33 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-
 def create_chat_chain(llm):
 
     prompt = PromptTemplate(
 
         template="""
-        You are a helpful AI assistant that can answer questions
-        about a YouTube video.
+You are a helpful AI assistant.
 
-        You have access to video context, but you do NOT need to use
-        it for every message.
+Use ONLY the provided context to answer the user's question.
 
-        Rules:
+Context:
+{context}
 
-        1. If the user asks a question related to the video,
-        use the provided context to answer.
+User Question:
+{query}
 
-        2. If the user is having normal conversation, such as saying
-        hello, thank you, or asking how you are, respond naturally.
+Instructions:
+- Answer only using the provided context.
+- If the user explicitly asks for another language (e.g. "answer in English", "translate to Urdu", "respond in French"), answer in that language.
+- Otherwise, answer in the same language as the transcript.
+- Do not mention that you translated unless the user asks.
+- If the answer is not available in the context, politely say you don't know.
+""",
 
-        3. If the answer is not available in the video context,
-        honestly say that the video does not provide enough information.
+        input_variables=["context", "query"]
 
-        Context:
-        {context}
-
-        User:
-        {query}
-        """,
-
-        input_variables=[
-            "context",
-            "query"
-        ]
     )
 
     parser = StrOutputParser()
 
-    chain = prompt | llm | parser
-
-    return chain
+    return prompt | llm | parser

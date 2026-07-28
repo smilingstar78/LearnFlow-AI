@@ -45,39 +45,26 @@ def create_timestamp_chain(llm):
 
     prompt = PromptTemplate(
 
-        template="""
-        You are answering a question about a specific moment
-        in a YouTube video.
+    template="""
+The user asked about a specific moment in the video.
 
-        The user wants to know what was being said or discussed
-        at the requested timestamp.
+Transcript around that timestamp:
 
-        Transcript spoken around that timestamp:
+{context}
 
-        {context}
+User Request:
+{query}
 
-        User question:
+Instructions:
+- Explain what was being discussed around this timestamp.
+- If the user requests another language, answer in that language.
+- Otherwise, answer in the transcript's language.
+- Never explain timestamp conversion.
+""",
 
-        {query}
+    input_variables=["context", "query"]
 
-        Answer directly and naturally.
-
-        Do not explain how timestamps are converted into seconds.
-        Do not discuss ambiguity about the timestamp.
-        Do not mention missing units.
-
-        Simply explain what was being said or discussed at that
-        moment based on the transcript provided.
-
-        If the transcript context is incomplete, say what can be
-        understood from the available transcript.
-        """,
-
-        input_variables=[
-            "context",
-            "query"
-        ]
-    )
+)
 
     parser = StrOutputParser()
 
