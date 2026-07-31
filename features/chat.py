@@ -1,6 +1,7 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+
 def create_chat_chain(llm):
 
     prompt = PromptTemplate(
@@ -8,23 +9,33 @@ def create_chat_chain(llm):
         template="""
 You are a helpful AI assistant.
 
-Use ONLY the provided context to answer the user's question.
+Previous Conversation:
+{memory}
 
-Context:
+Video Context:
 {context}
 
-User Question:
+Current User Question:
 {query}
 
 Instructions:
-- Answer only using the provided context.
-- If the user explicitly asks for another language (e.g. "answer in English", "translate to Urdu", "respond in French"), answer in that language.
-- Otherwise, answer in the same language as the transcript.
-- Do not mention that you translated unless the user asks.
-- If the answer is not available in the context, politely say you don't know.
+
+- Use the previous conversation whenever it helps understand follow-up questions.
+- Use the video context to answer questions about the video.
+- If the user asks to translate, explain further, shorten, expand, or rewrite a previous answer, use the previous conversation.
+- Otherwise answer using the video context.
+- If the answer cannot be found, politely say you don't know.
 """,
 
-        input_variables=["context", "query"]
+        input_variables=[
+
+            "memory",
+
+            "context",
+
+            "query"
+
+        ]
 
     )
 
