@@ -2,8 +2,14 @@ from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
 
+from memory.conversation_memory import (
+    add_to_memory,
+    get_memory
+)
 
 from utils.url import extract_video_id
+
+from features.translation import create_translation_chain
 
 from services.transcript_service import fetch_transcript
 
@@ -87,6 +93,10 @@ overview_chain = create_overview_chain(llm)
 
 timestamp_chain = create_timestamp_chain(llm)
 
+translation_chain = create_translation_chain(llm)
+
+last_ai_response = ""
+
 
 # -----------------------------------
 # 8. Chat Loop
@@ -97,6 +107,51 @@ while True:
     query = input("\nUser: ")
 
     query_lower = query.lower()
+
+    translation_keywords = [
+
+    "translate",
+
+    "translation",
+
+    "translate this",
+
+    "translate it",
+
+    "in urdu",
+
+    "in english",
+
+    "in hindi",
+
+    "in french",
+
+    "in arabic",
+
+    "in turkish"
+
+]
+    if any(word in query_lower for word in translation_keywords):
+
+        if last_ai_response == "":
+
+            print("\nAI: There is nothing to translate yet.")
+
+            continue
+
+        result = translation_chain.invoke({
+
+            "query": query,
+
+            "text": last_ai_response
+
+        })
+
+        print("\nAI:", result)
+
+        last_ai_response = result
+
+        continue
 
 
     # -------------------------------
@@ -138,6 +193,8 @@ while True:
 
         print("\nAI:", result)
 
+        last_ai_response = result
+
         continue
 
 
@@ -170,6 +227,8 @@ while True:
 
         print("\nAI:", result)
 
+        last_ai_response = result
+
         continue
 
 
@@ -194,14 +253,22 @@ while True:
 
         """
 
+    memory = get_memory()
+
 
     result = chat_chain.invoke({
 
-        "query": query,
+    "query": query,
 
-        "context": context
+    "context": context,
 
-    })
+    "memory": memory
+
+})
 
 
     print("\nAI:", result)
+
+    last_ai_response = result
+
+    add_to_memory(query, result)
