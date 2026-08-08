@@ -2,6 +2,10 @@ from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
 
+from features.important_timestamps import (
+    create_important_timestamps_chain
+)
+
 from memory.conversation_memory import (
     add_to_memory,
     get_memory
@@ -63,14 +67,51 @@ full_text = " ".join(
 
 
 # -----------------------------------
-# 5. Create Vector Store
+# 5. Create Timestamped Transcript
+# -----------------------------------
+
+timestamped_sections = []
+
+current_section = ""
+
+for snippet in transcript:
+
+    current_section += f"""
+Timestamp: {snippet.start}
+
+Content:
+{snippet.text}
+"""
+
+    # Keep each section reasonably small
+    if len(current_section) >= 12000:
+
+        timestamped_sections.append(current_section)
+
+        current_section = ""
+
+
+# Add remaining transcript
+if current_section:
+
+    timestamped_sections.append(current_section)
+
+
+print(
+    f"Transcript divided into "
+    f"{len(timestamped_sections)} sections."
+)
+
+
+# -----------------------------------
+# 6. Create Vector Store
 # -----------------------------------
 
 retriever = create_vector_store(transcript)
 
 
 # -----------------------------------
-# 6. Create LLM
+# 7. Create LLM
 # -----------------------------------
 
 llm = ChatGroq(
@@ -78,11 +119,12 @@ llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
 
     model="llama-3.3-70b-versatile"
+
 )
 
 
 # -----------------------------------
-# 7. Create Chains
+# 8. Create Chains
 # -----------------------------------
 
 chat_chain = create_chat_chain(llm)
@@ -95,11 +137,20 @@ timestamp_chain = create_timestamp_chain(llm)
 
 translation_chain = create_translation_chain(llm)
 
+important_timestamps_chain = (
+    create_important_timestamps_chain(llm)
+)
+
+
+# -----------------------------------
+# 9. Conversation Memory
+# -----------------------------------
+
 last_ai_response = ""
 
 
 # -----------------------------------
-# 8. Chat Loop
+# 10. Chat Loop
 # -----------------------------------
 
 while True:
@@ -108,36 +159,98 @@ while True:
 
     query_lower = query.lower()
 
+
+    # ===================================
+    # IMPORTANT TIMESTAMPS
+    # ===================================
+
+    if (
+        "important timestamps" in query_lower
+        or "important moments" in query_lower
+        or "key timestamps" in query_lower
+        or "key moments" in query_lower
+    ):
+
+        all_results = []
+
+
+        for section in timestamped_sections:
+
+            result = important_timestamps_chain.invoke({
+
+                "transcript": section
+
+            })
+
+            all_results.append(result)
+
+
+        final_result = "\n\n".join(
+            all_results
+        )
+
+
+        print("\nAI:", final_result)
+
+
+        last_ai_response = final_result
+
+
+        add_to_memory(
+
+            query,
+
+            final_result
+
+        )
+
+
+        continue
+
+
+    # ===================================
+    # TRANSLATION
+    # ===================================
+
     translation_keywords = [
 
-    "translate",
+        "translate",
 
-    "translation",
+        "translation",
 
-    "translate this",
+        "translate this",
 
-    "translate it",
+        "translate it",
 
-    "in urdu",
+        "in urdu",
 
-    "in english",
+        "in english",
 
-    "in hindi",
+        "in hindi",
 
-    "in french",
+        "in french",
 
-    "in arabic",
+        "in arabic",
 
-    "in turkish"
+        "in turkish"
 
-]
-    if any(word in query_lower for word in translation_keywords):
+    ]
+
+
+    if any(
+        word in query_lower
+        for word in translation_keywords
+    ):
 
         if last_ai_response == "":
 
-            print("\nAI: There is nothing to translate yet.")
+            print(
+                "\nAI: There is nothing "
+                "to translate yet."
+            )
 
             continue
+
 
         result = translation_chain.invoke({
 
@@ -147,16 +260,28 @@ while True:
 
         })
 
+
         print("\nAI:", result)
 
+
         last_ai_response = result
+
+
+        add_to_memory(
+
+            query,
+
+            result
+
+        )
+
 
         continue
 
 
-    # -------------------------------
-    # Video Overview Feature
-    # -------------------------------
+    # ===================================
+    # VIDEO OVERVIEW
+    # ===================================
 
     if (
         "what is this video about" in query_lower
@@ -166,41 +291,71 @@ while True:
 
         result = overview_chain.invoke({
 
-    "full_text": full_text,
+            "full_text": full_text,
 
-    "query": query
+            "query": query
 
-})
+        })
+
 
         print("\nAI:", result)
 
-        continue
-
-
-    # -------------------------------
-    # Summary Feature
-    # -------------------------------
-
-    if "summary" in query_lower:
-
-        result = summary_chain.invoke({
-
-    "full_text": full_text,
-
-    "query": query
-
-})
-
-        print("\nAI:", result)
 
         last_ai_response = result
 
+
+        add_to_memory(
+
+            query,
+
+            result
+
+        )
+
+
         continue
 
 
-    # -------------------------------
-    # Timestamp Feature
-    # -------------------------------
+    # ===================================
+    # SUMMARY
+    # ===================================
+
+    if (
+        "summary" in query_lower
+        or "summarize" in query_lower
+        or "summarise" in query_lower
+    ):
+
+        result = summary_chain.invoke({
+
+            "full_text": full_text,
+
+            "query": query
+
+        })
+
+
+        print("\nAI:", result)
+
+
+        last_ai_response = result
+
+
+        add_to_memory(
+
+            query,
+
+            result
+
+        )
+
+
+        continue
+
+
+    # ===================================
+    # SPECIFIC TIMESTAMP
+    # ===================================
 
     timestamp = extract_timestamp(query)
 
@@ -227,14 +382,25 @@ while True:
 
         print("\nAI:", result)
 
+
         last_ai_response = result
+
+
+        add_to_memory(
+
+            query,
+
+            result
+
+        )
+
 
         continue
 
 
-    # -------------------------------
-    # Normal RAG Chat
-    # -------------------------------
+    # ===================================
+    # NORMAL RAG CHAT
+    # ===================================
 
     results = retriever.invoke(query)
 
@@ -246,29 +412,39 @@ while True:
 
         context += f"""
 
-        Timestamp: {doc.metadata['start']}
+Timestamp: {doc.metadata['start']}
 
-        Content:
-        {doc.page_content}
+Content:
+{doc.page_content}
 
-        """
+"""
 
+
+    # Get previous conversation
     memory = get_memory()
 
 
     result = chat_chain.invoke({
 
-    "query": query,
+        "query": query,
 
-    "context": context,
+        "context": context,
 
-    "memory": memory
+        "memory": memory
 
-})
+    })
 
 
     print("\nAI:", result)
 
+
     last_ai_response = result
 
-    add_to_memory(query, result)
+
+    add_to_memory(
+
+        query,
+
+        result
+
+    )
