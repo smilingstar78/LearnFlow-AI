@@ -2,28 +2,38 @@ from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
 
-from features.important_timestamps import (
-    create_important_timestamps_chain
-)
 
-from memory.conversation_memory import (
-    add_to_memory,
-    get_memory
-)
-
-from utils.url import extract_video_id
-
-from features.translation import create_translation_chain
-
-from services.transcript_service import fetch_transcript
-
-from services.vector_store import create_vector_store
+# -----------------------------------
+# Feature Imports
+# -----------------------------------
 
 from features.chat import create_chat_chain
 
 from features.summary import create_summary_chain
 
 from features.overview import create_overview_chain
+
+from features.translation import create_translation_chain
+
+from features.important_timestamps import (
+    create_important_timestamps_chain
+)
+
+from features.study_notes import (
+    create_study_notes_chain
+)
+
+from features.quiz import (
+    create_quiz_chain
+)
+
+from features.flashcards import (
+    create_flashcards_chain
+)
+
+from features.chapters import (
+    create_chapters_chain
+)
 
 from features.timestamp import (
     extract_timestamp,
@@ -32,132 +42,338 @@ from features.timestamp import (
 )
 
 
+# -----------------------------------
+# Memory
+# -----------------------------------
+
+from memory.conversation_memory import (
+    add_to_memory,
+    get_memory
+)
+
+
+# -----------------------------------
+# Services / Utils
+# -----------------------------------
+
+from utils.url import extract_video_id
+
+from services.transcript_service import (
+    fetch_transcript
+)
+
+from services.vector_store import (
+    create_vector_store
+)
+
+
 load_dotenv()
 
 
-# -----------------------------------
-# 1. Get YouTube URL
-# -----------------------------------
+# ===================================
+# 1. GET FIRST YOUTUBE VIDEO
+# ===================================
 
-url = input("Paste URL: ")
+video_transcripts = []
 
 
-# -----------------------------------
-# 2. Extract Video ID
-# -----------------------------------
+url = input("Paste YouTube URL: ")
+
 
 video_id = extract_video_id(url)
 
 
-# -----------------------------------
-# 3. Fetch Transcript
-# -----------------------------------
+if video_id is None:
+
+    print("Invalid YouTube URL.")
+
+    exit()
+
+
+print("Fetching transcript...")
+
 
 transcript = fetch_transcript(video_id)
 
 
-# -----------------------------------
-# 4. Create Full Text
-# -----------------------------------
+video_transcripts.append({
 
-full_text = " ".join(
-    snippet.text
-    for snippet in transcript
+    "video_id": video_id,
+
+    "transcript": transcript
+
+})
+
+
+print("Video added successfully!")
+
+
+# ===================================
+# 2. OPTIONAL MULTIPLE VIDEOS
+# ===================================
+
+while True:
+
+    add_more = input(
+        "\nDo you want to add another video? (y/n): "
+    ).lower()
+
+
+    if add_more == "n":
+
+        break
+
+
+    elif add_more == "y":
+
+        url = input(
+            "Paste YouTube URL: "
+        )
+
+
+        video_id = extract_video_id(url)
+
+
+        if video_id is None:
+
+            print(
+                "Invalid YouTube URL. Try again."
+            )
+
+            continue
+
+
+        print(
+            "Fetching transcript..."
+        )
+
+
+        transcript = fetch_transcript(
+            video_id
+        )
+
+
+        video_transcripts.append({
+
+            "video_id": video_id,
+
+            "transcript": transcript
+
+        })
+
+
+        print(
+            "Video added successfully!"
+        )
+
+
+    else:
+
+        print(
+            "Please enter y or n."
+        )
+
+
+print(
+    f"\nTotal videos loaded: "
+    f"{len(video_transcripts)}"
 )
 
 
-# -----------------------------------
-# 5. Create Timestamped Transcript
-# -----------------------------------
+# ===================================
+# 3. CREATE FULL TEXT
+# ===================================
+
+full_text = ""
+
+
+for video in video_transcripts:
+
+    full_text += "\n\n"
+
+
+    full_text += "\n".join(
+
+        snippet.text
+
+        for snippet in video["transcript"]
+
+    )
+
+
+# ===================================
+# 4. CREATE TIMESTAMPED SECTIONS
+# ===================================
 
 timestamped_sections = []
 
+
 current_section = ""
 
-for snippet in transcript:
 
-    current_section += f"""
+for video in video_transcripts:
+
+    video_id = video["video_id"]
+
+
+    for snippet in video["transcript"]:
+
+        current_section += f"""
+
+Video ID: {video_id}
+
 Timestamp: {snippet.start}
 
 Content:
 {snippet.text}
+
 """
 
-    # Keep each section reasonably small
-    if len(current_section) >= 12000:
 
-        timestamped_sections.append(current_section)
+        # Keep sections reasonably small
+        # to avoid huge LLM requests
 
-        current_section = ""
+        if len(current_section) >= 12000:
+
+            timestamped_sections.append(
+                current_section
+            )
+
+            current_section = ""
 
 
-# Add remaining transcript
+# Add remaining content
+
 if current_section:
 
-    timestamped_sections.append(current_section)
+    timestamped_sections.append(
+        current_section
+    )
 
 
 print(
-    f"Transcript divided into "
-    f"{len(timestamped_sections)} sections."
+    f"Total transcript sections: "
+    f"{len(timestamped_sections)}"
 )
 
 
-# -----------------------------------
-# 6. Create Vector Store
-# -----------------------------------
+# ===================================
+# 5. CREATE VECTOR STORE
+# ===================================
 
-retriever = create_vector_store(transcript)
+retriever = create_vector_store(
+    video_transcripts
+)
 
 
-# -----------------------------------
-# 7. Create LLM
-# -----------------------------------
+# ===================================
+# 6. CREATE LLM
+# ===================================
 
 llm = ChatGroq(
 
-    api_key=os.getenv("GROQ_API_KEY"),
+    api_key=os.getenv(
+        "GROQ_API_KEY"
+    ),
 
     model="llama-3.3-70b-versatile"
-
 )
 
 
-# -----------------------------------
-# 8. Create Chains
-# -----------------------------------
+# ===================================
+# 7. CREATE CHAINS
+# ===================================
 
-chat_chain = create_chat_chain(llm)
+chat_chain = create_chat_chain(
+    llm
+)
 
-summary_chain = create_summary_chain(llm)
 
-overview_chain = create_overview_chain(llm)
+summary_chain = create_summary_chain(
+    llm
+)
 
-timestamp_chain = create_timestamp_chain(llm)
 
-translation_chain = create_translation_chain(llm)
+overview_chain = create_overview_chain(
+    llm
+)
+
+
+timestamp_chain = create_timestamp_chain(
+    llm
+)
+
+
+translation_chain = create_translation_chain(
+    llm
+)
+
 
 important_timestamps_chain = (
-    create_important_timestamps_chain(llm)
+    create_important_timestamps_chain(
+        llm
+    )
 )
 
 
-# -----------------------------------
-# 9. Conversation Memory
-# -----------------------------------
+study_notes_chain = (
+    create_study_notes_chain(
+        llm
+    )
+)
+
+
+quiz_chain = create_quiz_chain(
+    llm
+)
+
+
+flashcards_chain = (
+    create_flashcards_chain(
+        llm
+    )
+)
+
+
+chapters_chain = create_chapters_chain(
+    llm
+)
+
+
+# ===================================
+# 8. MEMORY
+# ===================================
 
 last_ai_response = ""
 
 
-# -----------------------------------
-# 10. Chat Loop
-# -----------------------------------
+# ===================================
+# 9. CHAT LOOP
+# ===================================
 
 while True:
 
     query = input("\nUser: ")
 
+
     query_lower = query.lower()
+
+
+    # ===================================
+    # EXIT
+    # ===================================
+
+    if query_lower in [
+        "exit",
+        "quit",
+        "bye"
+    ]:
+
+        print(
+            "\nAI: Goodbye! 👋"
+        )
+
+        break
 
 
     # ===================================
@@ -165,10 +381,17 @@ while True:
     # ===================================
 
     if (
-        "important timestamps" in query_lower
-        or "important moments" in query_lower
-        or "key timestamps" in query_lower
-        or "key moments" in query_lower
+        "important timestamps"
+        in query_lower
+
+        or "important moments"
+        in query_lower
+
+        or "key timestamps"
+        in query_lower
+
+        or "key moments"
+        in query_lower
     ):
 
         all_results = []
@@ -176,11 +399,14 @@ while True:
 
         for section in timestamped_sections:
 
-            result = important_timestamps_chain.invoke({
+            result = (
+                important_timestamps_chain.invoke({
 
-                "transcript": section
+                    "transcript": section
 
-            })
+                })
+            )
+
 
             all_results.append(result)
 
@@ -190,18 +416,265 @@ while True:
         )
 
 
-        print("\nAI:", final_result)
+        print(
+            "\nAI:",
+            final_result
+        )
 
 
         last_ai_response = final_result
 
 
         add_to_memory(
-
             query,
-
             final_result
+        )
 
+
+        continue
+
+
+    # ===================================
+    # FLASHCARDS
+    # ===================================
+
+    if (
+        "flashcards"
+        in query_lower
+
+        or "flash cards"
+        in query_lower
+
+        or "flashcard"
+        in query_lower
+
+        or "make flashcards"
+        in query_lower
+
+        or "generate flashcards"
+        in query_lower
+    ):
+
+        all_flashcards = []
+
+
+        for section in timestamped_sections:
+
+            result = (
+                flashcards_chain.invoke({
+
+                    "transcript": section
+
+                })
+            )
+
+
+            all_flashcards.append(result)
+
+
+        final_flashcards = "\n\n".join(
+            all_flashcards
+        )
+
+
+        print(
+            "\nAI:",
+            final_flashcards
+        )
+
+
+        last_ai_response = (
+            final_flashcards
+        )
+
+
+        add_to_memory(
+            query,
+            final_flashcards
+        )
+
+
+        continue
+
+
+    # ===================================
+    # QUIZ GENERATOR
+    # ===================================
+
+    if (
+        "quiz"
+        in query_lower
+
+        or "mcq"
+        in query_lower
+
+        or "mcqs"
+        in query_lower
+
+        or "test me"
+        in query_lower
+
+        or "create questions"
+        in query_lower
+    ):
+
+        all_quizzes = []
+
+
+        for section in timestamped_sections:
+
+            result = (
+                quiz_chain.invoke({
+
+                    "transcript": section
+
+                })
+            )
+
+
+            all_quizzes.append(result)
+
+
+        final_quiz = "\n\n".join(
+            all_quizzes
+        )
+
+
+        print(
+            "\nAI:",
+            final_quiz
+        )
+
+
+        last_ai_response = final_quiz
+
+
+        add_to_memory(
+            query,
+            final_quiz
+        )
+
+
+        continue
+
+
+    # ===================================
+    # STUDY NOTES
+    # ===================================
+
+    if (
+        "study notes"
+        in query_lower
+
+        or "study note"
+        in query_lower
+
+        or "make notes"
+        in query_lower
+
+        or "create notes"
+        in query_lower
+
+        or "generate notes"
+        in query_lower
+    ):
+
+        all_notes = []
+
+
+        for section in timestamped_sections:
+
+            result = (
+                study_notes_chain.invoke({
+
+                    "transcript": section
+
+                })
+            )
+
+
+            all_notes.append(result)
+
+
+        final_notes = "\n\n".join(
+            all_notes
+        )
+
+
+        print(
+            "\nAI:",
+            final_notes
+        )
+
+
+        last_ai_response = final_notes
+
+
+        add_to_memory(
+            query,
+            final_notes
+        )
+
+
+        continue
+
+
+    # ===================================
+    # CHAPTER GENERATOR
+    # ===================================
+
+    if (
+        "generate chapters"
+        in query_lower
+
+        or "create chapters"
+        in query_lower
+
+        or "video chapters"
+        in query_lower
+
+        or "make chapters"
+        in query_lower
+
+        or query_lower == "chapters"
+    ):
+
+        all_chapters = []
+
+
+        for section in timestamped_sections:
+
+            result = (
+                chapters_chain.invoke({
+
+                    "transcript": section
+
+                })
+            )
+
+
+            all_chapters.append(result)
+
+
+        final_chapters = "\n\n".join(
+            all_chapters
+        )
+
+
+        print(
+            "\nAI:",
+            final_chapters
+        )
+
+
+        last_ai_response = (
+            final_chapters
+        )
+
+
+        add_to_memory(
+            query,
+            final_chapters
         )
 
 
@@ -242,6 +715,7 @@ while True:
         for word in translation_keywords
     ):
 
+
         if last_ai_response == "":
 
             print(
@@ -261,18 +735,18 @@ while True:
         })
 
 
-        print("\nAI:", result)
+        print(
+            "\nAI:",
+            result
+        )
 
 
         last_ai_response = result
 
 
         add_to_memory(
-
             query,
-
             result
-
         )
 
 
@@ -284,9 +758,14 @@ while True:
     # ===================================
 
     if (
-        "what is this video about" in query_lower
-        or "what is the video about" in query_lower
-        or "tell me about this video" in query_lower
+        "what is this video about"
+        in query_lower
+
+        or "what is the video about"
+        in query_lower
+
+        or "tell me about this video"
+        in query_lower
     ):
 
         result = overview_chain.invoke({
@@ -298,18 +777,18 @@ while True:
         })
 
 
-        print("\nAI:", result)
+        print(
+            "\nAI:",
+            result
+        )
 
 
         last_ai_response = result
 
 
         add_to_memory(
-
             query,
-
             result
-
         )
 
 
@@ -320,11 +799,7 @@ while True:
     # SUMMARY
     # ===================================
 
-    if (
-        "summary" in query_lower
-        or "summarize" in query_lower
-        or "summarise" in query_lower
-    ):
+    if "summary" in query_lower:
 
         result = summary_chain.invoke({
 
@@ -335,18 +810,18 @@ while True:
         })
 
 
-        print("\nAI:", result)
+        print(
+            "\nAI:",
+            result
+        )
 
 
         last_ai_response = result
 
 
         add_to_memory(
-
             query,
-
             result
-
         )
 
 
@@ -354,20 +829,30 @@ while True:
 
 
     # ===================================
-    # SPECIFIC TIMESTAMP
+    # TIMESTAMP QUESTION
     # ===================================
 
-    timestamp = extract_timestamp(query)
+    timestamp = extract_timestamp(
+        query
+    )
 
 
     if timestamp is not None:
 
-        timestamp_context = get_timestamp_context(
+        timestamp_context = (
+            get_timestamp_context(
 
-            transcript,
+                # Use the first transcript
+                # for the current timestamp
+                # feature
 
-            timestamp
+                video_transcripts[0][
+                    "transcript"
+                ],
 
+                timestamp
+
+            )
         )
 
 
@@ -380,18 +865,18 @@ while True:
         })
 
 
-        print("\nAI:", result)
+        print(
+            "\nAI:",
+            result
+        )
 
 
         last_ai_response = result
 
 
         add_to_memory(
-
             query,
-
             result
-
         )
 
 
@@ -402,7 +887,9 @@ while True:
     # NORMAL RAG CHAT
     # ===================================
 
-    results = retriever.invoke(query)
+    results = retriever.invoke(
+        query
+    )
 
 
     context = ""
@@ -412,7 +899,11 @@ while True:
 
         context += f"""
 
-Timestamp: {doc.metadata['start']}
+Video ID:
+{doc.metadata.get("video_id", "Unknown")}
+
+Timestamp:
+{doc.metadata.get("start", "Unknown")}
 
 Content:
 {doc.page_content}
@@ -420,9 +911,16 @@ Content:
 """
 
 
-    # Get previous conversation
+    # ===================================
+    # GET MEMORY
+    # ===================================
+
     memory = get_memory()
 
+
+    # ===================================
+    # ASK LLM
+    # ===================================
 
     result = chat_chain.invoke({
 
@@ -435,16 +933,20 @@ Content:
     })
 
 
-    print("\nAI:", result)
+    print(
+        "\nAI:",
+        result
+    )
 
+
+    # ===================================
+    # SAVE MEMORY
+    # ===================================
 
     last_ai_response = result
 
 
     add_to_memory(
-
         query,
-
         result
-
     )
