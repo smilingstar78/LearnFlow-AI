@@ -1,0 +1,1102 @@
+@import url(
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+);
+
+
+/* ==========================================
+   VARIABLES
+========================================== */
+
+:root {
+  --background: #08060d;
+  --background-light: #0c0912;
+
+  --surface: #110d18;
+  --surface-light: #17121f;
+
+  --purple: #8b5cf6;
+  --purple-light: #a78bfa;
+  --purple-bright: #c084fc;
+
+  --text: #f5f3ff;
+  --text-secondary: #b7afc4;
+  --text-muted: #777083;
+
+  --border:
+    rgba(255, 255, 255, 0.075);
+
+  --purple-border:
+    rgba(139, 92, 246, 0.28);
+
+  --purple-bg:
+    rgba(139, 92, 246, 0.08);
+}
+
+
+/* ==========================================
+   RESET
+========================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+
+  min-height: 100%;
+
+  width: 100%;
+}
+
+body {
+  font-family:
+    "Inter",
+    system-ui,
+    sans-serif;
+
+  color: var(--text);
+
+  background:
+    radial-gradient(
+      circle at 50% -20%,
+      rgba(109, 40, 217, 0.20),
+      transparent 45%
+    ),
+    var(--background);
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+
+/* ==========================================
+   APP
+========================================== */
+
+.app {
+  min-height: 100vh;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.header {
+  height: 72px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding:
+    0 34px;
+
+  border-bottom:
+    1px solid var(--border);
+
+  background:
+    rgba(8, 6, 13, 0.82);
+
+  backdrop-filter:
+    blur(18px);
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 20;
+}
+
+
+/* ==========================================
+   BRAND
+========================================== */
+
+.brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+}
+
+.brand-logo {
+  width: 39px;
+
+  height: 39px;
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0 0 10px
+      rgba(139, 92, 246, 0.45)
+    );
+}
+
+.brand-info {
+  display: flex;
+
+  flex-direction: column;
+}
+
+.brand-info h1 {
+  margin: 0;
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  letter-spacing: -0.3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff,
+      #c084fc
+    );
+
+  background-clip: text;
+
+  -webkit-background-clip: text;
+
+  color: transparent;
+
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-info span {
+  margin-top: 2px;
+
+  font-size: 9px;
+
+  color:
+    var(--text-muted);
+}
+
+
+/* ==========================================
+   YOUTUBE AREA
+========================================== */
+
+.youtube-area {
+  width: min(
+    850px,
+    calc(100% - 40px)
+  );
+
+  margin:
+    27px auto 0;
+}
+
+
+/* ==========================================
+   YOUTUBE INPUT
+========================================== */
+
+.youtube-input-wrapper {
+  height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 5px;
+
+  border-radius: 14px;
+
+  background:
+    rgba(17, 13, 24, 0.88);
+
+  border:
+    1px solid var(--border);
+
+  box-shadow:
+    0 10px 40px
+    rgba(0, 0, 0, 0.25);
+
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+
+.youtube-input-wrapper:focus-within {
+  border-color:
+    var(--purple-border);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(139, 92, 246, 0.07),
+    0 10px 40px
+    rgba(0, 0, 0, 0.30);
+}
+
+
+/* ==========================================
+   YOUTUBE ICON
+========================================== */
+
+.youtube-icon {
+  width: 43px;
+
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.youtube-icon svg {
+  width: 25px;
+
+  height: 25px;
+
+  display: block;
+}
+
+
+/* ==========================================
+   YOUTUBE INPUT
+========================================== */
+
+.youtube-input {
+  flex: 1;
+
+  height: 100%;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  color:
+    var(--text);
+
+  font-size: 13px;
+}
+
+.youtube-input::placeholder {
+  color:
+    #686171;
+}
+
+
+/* ==========================================
+   YOUTUBE BUTTON
+========================================== */
+
+.youtube-button {
+  height: 42px;
+
+  padding:
+    0 18px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #9333ea
+    );
+
+  color: white;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    opacity 0.2s;
+}
+
+.youtube-button:hover {
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 7px 22px
+    rgba(139, 92, 246, 0.28);
+}
+
+.youtube-button:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ==========================================
+   ERROR
+========================================== */
+
+.error {
+  margin-top: 10px;
+
+  padding: 9px 12px;
+
+  border-radius: 9px;
+
+  color: #fca5a5;
+
+  background:
+    rgba(248, 113, 113, 0.07);
+
+  border:
+    1px solid
+    rgba(248, 113, 113, 0.16);
+
+  font-size: 11px;
+}
+
+
+/* ==========================================
+   VIDEO STATUS
+========================================== */
+
+.video-status {
+  display: flex;
+
+  gap: 7px;
+
+  flex-wrap: wrap;
+
+  margin-top: 10px;
+}
+
+.video-pill {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  padding:
+    6px 9px;
+
+  border-radius: 8px;
+
+  border:
+    1px solid var(--border);
+
+  background:
+    rgba(255, 255, 255, 0.018);
+
+  color:
+    var(--text-muted);
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s;
+}
+
+.video-pill:hover {
+  border-color:
+    var(--purple-border);
+
+  color:
+    var(--text-secondary);
+}
+
+.video-pill.selected {
+  border-color:
+    var(--purple-border);
+
+  background:
+    var(--purple-bg);
+
+  color:
+    var(--purple-light);
+}
+
+.status-dot {
+  color:
+    #a78bfa;
+
+  font-size: 8px;
+}
+
+.current-label {
+  padding:
+    2px 5px;
+
+  border-radius: 4px;
+
+  background:
+    rgba(139, 92, 246, 0.15);
+
+  color:
+    var(--purple-bright);
+
+  font-size: 8px;
+}
+
+
+/* ==========================================
+   CHAT CONTAINER
+========================================== */
+
+.chat-container {
+  width: min(
+    850px,
+    calc(100% - 40px)
+  );
+
+  margin:
+    0 auto;
+
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-height: 0;
+}
+
+
+/* ==========================================
+   MESSAGES
+========================================== */
+
+.messages {
+  flex: 1;
+
+  padding:
+    40px 8px 150px;
+
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #302640
+    transparent;
+}
+
+.messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: #302640;
+
+  border-radius: 10px;
+}
+
+
+/* ==========================================
+   WELCOME
+========================================== */
+
+.welcome {
+  min-height:
+    430px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+
+  padding-bottom: 40px;
+}
+
+.welcome-logo {
+  width: 66px;
+
+  height: 66px;
+
+  margin-bottom: 20px;
+
+  filter:
+    drop-shadow(
+      0 0 18px
+      rgba(139, 92, 246, 0.35)
+    );
+}
+
+.welcome h2 {
+  margin: 0;
+
+  font-size: 25px;
+
+  font-weight: 600;
+
+  letter-spacing: -0.7px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff,
+      #bfa8ff
+    );
+
+  background-clip: text;
+
+  -webkit-background-clip: text;
+
+  color: transparent;
+
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome p {
+  margin:
+    10px 0 0;
+
+  color:
+    var(--text-muted);
+
+  font-size: 12px;
+}
+
+
+/* ==========================================
+   SUGGESTIONS
+========================================== */
+
+.suggestions {
+  display: flex;
+
+  gap: 8px;
+
+  flex-wrap: wrap;
+
+  justify-content: center;
+
+  margin-top: 25px;
+}
+
+.suggestions button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding:
+    9px 12px;
+
+  border-radius: 9px;
+
+  border:
+    1px solid var(--border);
+
+  background:
+    rgba(255, 255, 255, 0.018);
+
+  color:
+    var(--text-secondary);
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s;
+}
+
+.suggestions button span {
+  color:
+    var(--purple-light);
+
+  font-size: 13px;
+}
+
+.suggestions button:hover {
+  color:
+    var(--text);
+
+  background:
+    var(--purple-bg);
+
+  border-color:
+    var(--purple-border);
+}
+
+
+/* ==========================================
+   MESSAGE ROW
+========================================== */
+
+.message-row {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 12px;
+
+  width: 100%;
+
+  margin-bottom: 28px;
+}
+
+.message-row.user {
+  justify-content: flex-end;
+}
+
+
+/* ==========================================
+   ASSISTANT LOGO
+========================================== */
+
+.message-logo {
+  width: 29px;
+
+  height: 29px;
+
+  flex-shrink: 0;
+
+  margin-top: 2px;
+
+  filter:
+    drop-shadow(
+      0 0 8px
+      rgba(139, 92, 246, 0.30)
+    );
+}
+
+
+/* ==========================================
+   MESSAGE CONTENT
+========================================== */
+
+.message-content {
+  max-width: 78%;
+
+  font-size: 13px;
+
+  line-height: 1.75;
+
+  white-space: pre-wrap;
+
+  word-break: break-word;
+}
+
+
+/* ==========================================
+   USER MESSAGE
+========================================== */
+
+.message-content.user {
+  padding:
+    11px 15px;
+
+  border-radius:
+    15px 15px 4px 15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6d28d9,
+      #8b5cf6
+    );
+
+  color: white;
+
+  box-shadow:
+    0 5px 20px
+    rgba(109, 40, 217, 0.18);
+}
+
+
+/* ==========================================
+   ASSISTANT MESSAGE
+========================================== */
+
+.message-content.assistant {
+  color:
+    #d8d2e1;
+
+  padding:
+    1px 0;
+}
+
+
+/* ==========================================
+   SYSTEM MESSAGE
+========================================== */
+
+.message-row.system {
+  justify-content: center;
+
+  margin-bottom: 20px;
+}
+
+.message-content.system {
+  padding:
+    7px 12px;
+
+  border-radius: 8px;
+
+  color:
+    var(--purple-light);
+
+  background:
+    var(--purple-bg);
+
+  border:
+    1px solid var(--purple-border);
+
+  font-size: 10px;
+}
+
+
+/* ==========================================
+   TYPING
+========================================== */
+
+.typing {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  height: 28px;
+}
+
+.typing span {
+  width: 6px;
+
+  height: 6px;
+
+  border-radius: 50%;
+
+  background:
+    var(--purple-light);
+
+  animation:
+    typing 1.2s
+    infinite ease-in-out;
+}
+
+.typing span:nth-child(2) {
+  animation-delay:
+    0.15s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay:
+    0.3s;
+}
+
+@keyframes typing {
+
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+
+    transform:
+      translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+
+    transform:
+      translateY(-3px);
+  }
+}
+
+
+/* ==========================================
+   CHAT INPUT AREA
+========================================== */
+
+.chat-input-area {
+  position: fixed;
+
+  bottom: 0;
+
+  left: 50%;
+
+  transform:
+    translateX(-50%);
+
+  width: min(
+    850px,
+    calc(100% - 40px)
+  );
+
+  padding:
+    12px 0 16px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(8, 6, 13, 0.95) 22%
+    );
+
+  z-index: 10;
+}
+
+
+/* ==========================================
+   CHAT INPUT
+========================================== */
+
+.chat-input-box {
+  min-height: 56px;
+
+  display: flex;
+
+  align-items: flex-end;
+
+  gap: 8px;
+
+  padding:
+    7px 8px 7px 17px;
+
+  border-radius: 17px;
+
+  background:
+    #15101d;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.10);
+
+  box-shadow:
+    0 10px 40px
+    rgba(0, 0, 0, 0.40);
+
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+
+.chat-input-box:focus-within {
+  border-color:
+    rgba(139, 92, 246, 0.40);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(139, 92, 246, 0.06),
+    0 10px 40px
+    rgba(0, 0, 0, 0.45);
+}
+
+.chat-input-box textarea {
+  flex: 1;
+
+  min-height: 40px;
+
+  max-height: 130px;
+
+  resize: none;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  color:
+    var(--text);
+
+  font-size: 13px;
+
+  line-height: 1.5;
+
+  padding:
+    10px 0;
+}
+
+.chat-input-box textarea::placeholder {
+  color:
+    #696270;
+}
+
+
+/* ==========================================
+   SEND BUTTON
+========================================== */
+
+.send-button {
+  width: 40px;
+
+  height: 40px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #9333ea
+    );
+
+  color: white;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    opacity 0.2s;
+}
+
+.send-button svg {
+  width: 18px;
+
+  height: 18px;
+}
+
+.send-button:hover:not(:disabled) {
+  transform:
+    scale(1.04);
+
+  box-shadow:
+    0 5px 18px
+    rgba(139, 92, 246, 0.35);
+}
+
+.send-button:disabled {
+  opacity: 0.3;
+
+  cursor: not-allowed;
+}
+
+
+/* ==========================================
+   INPUT HINT
+========================================== */
+
+.input-hint {
+  margin:
+    7px 0 0;
+
+  text-align: center;
+
+  color:
+    #4f4a57;
+
+  font-size: 9px;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 700px) {
+
+  .header {
+    height: 65px;
+
+    padding:
+      0 18px;
+  }
+
+  .brand-info span {
+    display: none;
+  }
+
+  .youtube-area,
+  .chat-container,
+  .chat-input-area {
+    width:
+      calc(100% - 24px);
+  }
+
+  .youtube-input-wrapper {
+    height: 50px;
+  }
+
+  .youtube-button {
+    padding:
+      0 13px;
+  }
+
+  .messages {
+    padding:
+      30px 3px 150px;
+  }
+
+  .welcome h2 {
+    font-size: 21px;
+  }
+
+  .welcome p {
+    max-width: 300px;
+
+    line-height: 1.6;
+  }
+
+  .suggestions {
+    flex-direction: column;
+
+    width: 100%;
+
+    max-width: 300px;
+  }
+
+  .suggestions button {
+    justify-content: center;
+
+    width: 100%;
+  }
+
+  .message-content {
+    max-width: 86%;
+
+    font-size: 12px;
+  }
+
+  .chat-input-area {
+    padding-bottom: 12px;
+  }
+}
