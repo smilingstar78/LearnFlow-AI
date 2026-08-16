@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
-from api.schemas.models import VideoRequest
-
 from api import state
+
+from api.schemas.models import VideoRequest
 
 from utils.url import extract_video_id
 
@@ -32,7 +32,6 @@ def add_video(request: VideoRequest):
         request.url
     )
 
-
     if video_id is None:
 
         raise HTTPException(
@@ -60,7 +59,7 @@ def add_video(request: VideoRequest):
 
 
     # -----------------------------------
-    # Add Video To Session
+    # Add Video
     # -----------------------------------
 
     state.video_transcripts.append({
@@ -73,16 +72,14 @@ def add_video(request: VideoRequest):
 
 
     # -----------------------------------
-    # Create Full Text
+    # Rebuild Full Text
     # -----------------------------------
 
     state.full_text = ""
 
-
     for video in state.video_transcripts:
 
         state.full_text += "\n\n"
-
 
         state.full_text += "\n".join(
 
@@ -94,25 +91,26 @@ def add_video(request: VideoRequest):
 
 
     # -----------------------------------
-    # Create Timestamped Transcript
+    # Rebuild Timestamped Sections
     # -----------------------------------
 
     state.timestamped_sections = []
-
 
     current_section = ""
 
 
     for video in state.video_transcripts:
 
-        current_video_id = video["video_id"]
+        video_id = video["video_id"]
+
+        transcript = video["transcript"]
 
 
-        for snippet in video["transcript"]:
+        for snippet in transcript:
 
             current_section += f"""
 
-Video ID: {current_video_id}
+Video ID: {video_id}
 
 Timestamp: {snippet.start}
 
@@ -122,6 +120,7 @@ Content:
 """
 
 
+            # Keep sections manageable
             if len(current_section) >= 12000:
 
                 state.timestamped_sections.append(
@@ -131,6 +130,10 @@ Content:
                 current_section = ""
 
 
+    # -----------------------------------
+    # Add Remaining Section
+    # -----------------------------------
+
     if current_section:
 
         state.timestamped_sections.append(
@@ -139,7 +142,7 @@ Content:
 
 
     # -----------------------------------
-    # Create / Rebuild Vector Store
+    # Create / Rebuild Retriever
     # -----------------------------------
 
     try:
@@ -170,7 +173,7 @@ Content:
             state.video_transcripts
         ),
 
-        "transcript_chunks": len(
+        "transcript_segments": len(
             transcript
         )
 

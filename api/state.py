@@ -1,14 +1,26 @@
-# api/state.py
-
-
 # ===================================
-# CURRENT LEARNFLOW SESSION
+# VIDEO STATE
 # ===================================
-
-retriever = None
 
 video_transcripts = []
 
+
+# ===================================
+# FULL TEXT
+# ===================================
+
 full_text = ""
 
+
+# ===================================
+# TIMESTAMPED SECTIONS
+# ===================================
+
 timestamped_sections = []
+
+
+# ===================================
+# RAG RETRIEVER
+# ===================================
+
+retriever = None

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 # ===================================
-# ADD VIDEO REQUEST
+# VIDEO REQUEST
 # ===================================
 
 class VideoRequest(BaseModel):
@@ -15,14 +15,5 @@ class VideoRequest(BaseModel):
 # ===================================
 
 class ChatRequest(BaseModel):
-
-    query: str
-
-
-# ===================================
-# TRANSLATION REQUEST
-# ===================================
-
-class TranslationRequest(BaseModel):
 
     query: str
