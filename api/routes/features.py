@@ -2,6 +2,10 @@ from fastapi import APIRouter, HTTPException
 
 from api import state
 
+from langchain_google_genai import (
+    ChatGoogleGenerativeAI
+)
+
 from api.schemas.models import ChatRequest
 
 from features.important_timestamps import (
@@ -29,11 +33,8 @@ from features.chapters import (
 )
 
 from memory.conversation_memory import (
-    get_memory,
-    add_to_memory
+    get_memory
 )
-
-from langchain_groq import ChatGroq
 
 from dotenv import load_dotenv
 
@@ -61,14 +62,15 @@ router = APIRouter(
 # LLM
 # ===================================
 
-llm = ChatGroq(
+llm = ChatGoogleGenerativeAI(
 
-    api_key=os.getenv(
-        "GROQ_API_KEY"
+    google_api_key=os.getenv(
+        "GEMINI_API_KEY"
     ),
 
-    model="llama-3.3-70b-versatile"
+    model="gemini-2.5-flash",
 
+    temperature=0
 )
 
 
@@ -80,24 +82,24 @@ important_timestamps_chain = (
     create_important_timestamps_chain(llm)
 )
 
-translation_chain = create_translation_chain(
-    llm
+translation_chain = (
+    create_translation_chain(llm)
 )
 
-study_notes_chain = create_study_notes_chain(
-    llm
+study_notes_chain = (
+    create_study_notes_chain(llm)
 )
 
-quiz_chain = create_quiz_chain(
-    llm
+quiz_chain = (
+    create_quiz_chain(llm)
 )
 
-flashcards_chain = create_flashcards_chain(
-    llm
+flashcards_chain = (
+    create_flashcards_chain(llm)
 )
 
-chapters_chain = create_chapters_chain(
-    llm
+chapters_chain = (
+    create_chapters_chain(llm)
 )
 
 
@@ -130,7 +132,6 @@ def important_timestamps():
 
     require_video()
 
-
     try:
 
         result = (
@@ -143,7 +144,6 @@ def important_timestamps():
 
             })
         )
-
 
     except Exception as e:
 
@@ -158,7 +158,6 @@ def important_timestamps():
 
         )
 
-
     return {
 
         "response": result
@@ -171,10 +170,16 @@ def important_timestamps():
 # ===================================
 
 @router.post("/translate")
-def translate(request: ChatRequest):
+def translate(
+    request: ChatRequest
+):
 
     query = request.query.strip()
 
+
+    # -----------------------------------
+    # Validate Query
+    # -----------------------------------
 
     if not query:
 
@@ -188,7 +193,7 @@ def translate(request: ChatRequest):
 
 
     # -----------------------------------
-    # Get Previous AI Response
+    # Get Memory
     # -----------------------------------
 
     memory = get_memory()
@@ -212,25 +217,66 @@ def translate(request: ChatRequest):
     # Extract Last AI Response
     # -----------------------------------
 
+    lines = memory.splitlines()
+
     last_ai_response = None
 
 
-    for line in reversed(
-        memory.splitlines()
+    for i in range(
+        len(lines) - 1,
+        -1,
+        -1
     ):
 
-        if line.startswith("AI:"):
+        if lines[i].startswith("AI:"):
 
-            last_ai_response = (
-                line.replace(
+            ai_lines = [
+
+                lines[i]
+                .replace(
                     "AI:",
                     "",
                     1
-                ).strip()
+                )
+                .strip()
+
+            ]
+
+
+            # Collect all lines belonging
+            # to this AI response
+
+            for j in range(
+                i + 1,
+                len(lines)
+            ):
+
+                # Stop when the next
+                # USER message begins
+
+                if lines[j].startswith(
+                    "USER:"
+                ):
+
+                    break
+
+
+                ai_lines.append(
+                    lines[j]
+                )
+
+
+            last_ai_response = (
+                "\n".join(ai_lines)
+                .strip()
             )
 
             break
 
+
+    # -----------------------------------
+    # Validate AI Response
+    # -----------------------------------
 
     if not last_ai_response:
 
@@ -252,14 +298,15 @@ def translate(request: ChatRequest):
 
     try:
 
-        result = translation_chain.invoke({
+        result = (
+            translation_chain.invoke({
 
-            "query": query,
+                "query": query,
 
-            "text": last_ai_response
+                "text": last_ai_response
 
-        })
-
+            })
+        )
 
     except Exception as e:
 
@@ -267,16 +314,17 @@ def translate(request: ChatRequest):
 
             status_code=500,
 
-            detail=f"Translation error: {str(e)}"
+            detail=(
+                "Translation error: "
+                f"{str(e)}"
+            )
 
         )
 
 
-    add_to_memory(
-        query,
-        result
-    )
-
+    # -----------------------------------
+    # Return Translation
+    # -----------------------------------
 
     return {
 
@@ -294,7 +342,6 @@ def study_notes():
 
     require_video()
 
-
     try:
 
         result = (
@@ -306,17 +353,18 @@ def study_notes():
             })
         )
 
-
     except Exception as e:
 
         raise HTTPException(
 
             status_code=500,
 
-            detail=f"Study notes error: {str(e)}"
+            detail=(
+                "Study notes error: "
+                f"{str(e)}"
+            )
 
         )
-
 
     return {
 
@@ -334,7 +382,6 @@ def quiz():
 
     require_video()
 
-
     try:
 
         result = (
@@ -346,17 +393,18 @@ def quiz():
             })
         )
 
-
     except Exception as e:
 
         raise HTTPException(
 
             status_code=500,
 
-            detail=f"Quiz error: {str(e)}"
+            detail=(
+                "Quiz error: "
+                f"{str(e)}"
+            )
 
         )
-
 
     return {
 
@@ -374,7 +422,6 @@ def flashcards():
 
     require_video()
 
-
     try:
 
         result = (
@@ -386,17 +433,18 @@ def flashcards():
             })
         )
 
-
     except Exception as e:
 
         raise HTTPException(
 
             status_code=500,
 
-            detail=f"Flashcards error: {str(e)}"
+            detail=(
+                "Flashcards error: "
+                f"{str(e)}"
+            )
 
         )
-
 
     return {
 
@@ -414,7 +462,6 @@ def chapters():
 
     require_video()
 
-
     try:
 
         result = (
@@ -429,17 +476,18 @@ def chapters():
             })
         )
 
-
     except Exception as e:
 
         raise HTTPException(
 
             status_code=500,
 
-            detail=f"Chapters error: {str(e)}"
+            detail=(
+                "Chapters error: "
+                f"{str(e)}"
+            )
 
         )
-
 
     return {
 

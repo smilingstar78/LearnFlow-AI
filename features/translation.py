@@ -9,21 +9,32 @@ def create_translation_chain(llm):
         template="""
 You are a professional translator.
 
-User Request:
+Translation request:
 {query}
 
 Text to translate:
 {text}
 
 Instructions:
-- Translate the given text according to the user's request.
-- Do not answer the question.
-- Do not summarize.
-- Do not explain.
-- Only return the translated text.
+- Follow the translation request exactly.
+- Translate the ENTIRE text.
+- Preserve the original meaning and tone.
+- Preserve timestamps exactly.
+- Preserve numbers exactly.
+- Preserve names exactly.
+- Preserve technical terms when appropriate.
+- Preserve the original formatting as much as possible.
+- Do NOT summarize.
+- Do NOT explain.
+- Do NOT answer the user's request.
+- Do NOT add any information.
+- Return ONLY the translated text.
 """,
 
-        input_variables=["query", "text"]
+        input_variables=[
+            "query",
+            "text"
+        ]
 
     )
 

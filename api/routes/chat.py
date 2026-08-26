@@ -4,6 +4,10 @@ from api import state
 
 from api.schemas.models import ChatRequest
 
+from langchain_google_genai import (
+    ChatGoogleGenerativeAI
+)
+
 from features.chat import create_chat_chain
 
 from features.timestamp import (
@@ -53,14 +57,15 @@ router = APIRouter(
 # LLM
 # ===================================
 
-llm = ChatGroq(
+llm = ChatGoogleGenerativeAI(
 
-    api_key=os.getenv(
-        "GROQ_API_KEY"
+    google_api_key=os.getenv(
+        "GEMINI_API_KEY"
     ),
 
-    model="llama-3.3-70b-versatile"
+    model="gemini-2.5-flash",
 
+    temperature=0
 )
 
 
