@@ -8,6 +8,7 @@ langchain-experimental
 langchain-huggingface
 langchain-chroma
 langchain-google-genai
+langchain-groq
 
 chromadb
 
@@ -18,7 +19,5 @@ torch
 youtube-transcript-api
 
 groq
-langchain-groq
-
 pydantic
 python-dotenv
